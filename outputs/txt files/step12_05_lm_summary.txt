@@ -1,0 +1,25 @@
+
+Call:
+lm(formula = relative_altitude_m ~ vertical_speed_mps + ground_speed_kmh + 
+    barometric_pressure_hpa + accel_z_g + total_distance_km, 
+    data = logger_data_final)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.47020 -0.32961  0.07978  0.42056  1.14447 
+
+Coefficients:
+                          Estimate Std. Error   t value Pr(>|t|)    
+(Intercept)              8.133e+03  1.814e+00  4484.447  < 2e-16 ***
+vertical_speed_mps       1.320e-02  2.054e-03     6.427 1.38e-10 ***
+ground_speed_kmh         1.049e-02  2.456e-04    42.724  < 2e-16 ***
+barometric_pressure_hpa -9.766e-02  2.179e-05 -4481.610  < 2e-16 ***
+accel_z_g               -8.033e-02  8.936e-03    -8.990  < 2e-16 ***
+total_distance_km       -1.057e-01  1.464e-03   -72.172  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5557 on 7624 degrees of freedom
+Multiple R-squared:  0.9997,	Adjusted R-squared:  0.9997 
+F-statistic: 5.397e+06 on 5 and 7624 DF,  p-value: < 2.2e-16
+

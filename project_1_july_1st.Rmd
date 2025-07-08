@@ -1,0 +1,415 @@
+---
+title: "T28B_July_1st_intro_flight"
+author: "Victor King"
+date: "2025-07-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+# Step:1 Libraries & Raw Data
+
+# Core Data Science Stack
+library(tidyverse)     # Includes dplyr, ggplot2, readr, etc.
+library(lubridate)     # For parsing and manipulating date-times
+library(janitor)       # Clean column names and tabulate missingness
+library(skimr)         # Data overview and summary stats
+library(geosphere)     # GPS distances, bearings, great-circle calcs
+
+# Enhanced Visualization
+library(scales)        # Pretty axis labels (e.g. km, %)
+library(patchwork)     # Combine ggplots into a single layout
+library(viridis)       # Colorblind-friendly palettes for plots
+library(ggplot2)
+
+# Interactive Tables and Visuals (for report or Shiny)
+library(DT)            # Create interactive tables
+library(plotly)        # Make ggplot2 plots interactive (if needed)
+
+library(reshape2)  # For melt()
+
+library(tidymodels)  # For modeling workflows
+library(broom)       # For tidy model summaries
+
+
+# Read the Raw CSV with Correct Encoding!!! (UTF-16) & Delimiter
+logger_data <- read_delim(
+  "2025-07-01-GPS3-46377-0001-Vario(GPS).csv",
+  delim = ";",
+  locale = locale(encoding = "UTF-16", decimal_mark = ",")
+)
+
+# Clean column names right after reading
+logger_data <- janitor::clean_names(logger_data)
+
+glimpse(logger_data)
+
+
+```
+
+
+```{r}
+# Step 2: Remove Unneeded Columns 
+logger_data_clean <- logger_data %>%
+  select(
+    date, time, lat, lon, speed_km_h, altitude_m, altitude_nn_m, vario_m_s,
+    flight_direction, direction, distance_m, route_km,
+    air_pressure_h_pa, pressure_tek_h_pa, vario_tek_m_s,
+    x_g, y_g, z_g, enl, rx_voltage_v_rx,
+    satellites, hdop, vdop, pdop
+  )
+
+# Check structure
+glimpse(logger_data_clean)
+
+
+# 🔹 Step 2.5: Save the Cleaned Dataset
+write_csv(
+  logger_data_clean,
+  "2025-07-01_T28B_cleaned.csv"
+)
+
+cat("✅ Cleaned CSV saved as '2025-07-01_T28B_cleaned.csv'\n")
+
+
+```
+
+```{r}
+
+# Step 3: Rename Columns
+logger_data_renamed <- logger_data_clean %>%
+  rename(
+    flight_date = date,
+    flight_time = time,
+    latitude_deg = lat,
+    longitude_deg = lon,
+    ground_speed_kmh = speed_km_h,
+    relative_altitude_m = altitude_m,
+    absolute_altitude_msl_m = altitude_nn_m,
+    vertical_speed_mps = vario_m_s,
+    flight_heading_deg = flight_direction,
+    gps_track_deg = direction,
+    distance_from_home_m = distance_m,
+    total_distance_km = route_km,
+    barometric_pressure_hpa = air_pressure_h_pa,
+    te_pressure_hpa = pressure_tek_h_pa,
+    te_vertical_speed_mps = vario_tek_m_s,
+    accel_x_g = x_g,
+    accel_y_g = y_g,
+    accel_z_g = z_g,
+    engine_noise_level = enl,
+    receiver_voltage_v = rx_voltage_v_rx,
+    satellites_tracked = satellites,
+    gps_hdop = hdop,
+    gps_vdop = vdop,
+    gps_pdop = pdop
+  )
+
+# 🔹 Step 3.5: Save the Renamed Dataset
+write_csv(logger_data_renamed, "2025-07-01_T28B_renamed.csv")
+cat("✅ Renamed dataset saved as '2025-07-01_T28B_renamed.csv'\n")
+glimpse(logger_data_renamed)
+
+
+
+```
+
+
+
+```{r}
+
+# Engineering
+
+# Step 4-5: Add Elapsed Time + Physics-Based Flight Phase (4-second bins)
+logger_data_final <- logger_data_renamed %>%
+  mutate(
+    # Parse U.S. style date first, then combine with time
+    flight_date = mdy(flight_date),
+    datetime = ymd_hms(paste(flight_date, flight_time)),
+
+    # Calculate elapsed time in seconds since start
+    elapsed_time_s = as.numeric(difftime(datetime, min(datetime, na.rm = TRUE), units = "secs")),
+
+    # Bin into 4-second intervals
+    time_bin_4s = floor(elapsed_time_s / 4),
+
+    # Ensure vertical speed is numeric before averaging
+    vertical_speed_mps = as.numeric(vertical_speed_mps)
+  ) %>%
+  group_by(time_bin_4s) %>%
+  mutate(
+    avg_vspeed = mean(vertical_speed_mps, na.rm = TRUE),
+    flight_phase = case_when(
+      avg_vspeed >  0.3  ~ "Climb",
+      avg_vspeed < -0.3  ~ "Sink",
+      TRUE               ~ "Level"
+    )
+  ) %>%
+  ungroup() %>%
+  select(-datetime, -time_bin_4s, -avg_vspeed)
+
+# Step 6: Convert character columns to numeric where appropriate
+logger_data_final <- logger_data_final %>%
+  mutate(
+    across(
+      c(
+        ground_speed_kmh,
+        relative_altitude_m,
+        flight_heading_deg,
+        gps_track_deg,
+        total_distance_km,
+        te_vertical_speed_mps,
+        accel_x_g, accel_y_g, accel_z_g,
+        gps_hdop, gps_vdop, gps_pdop
+      ),
+      ~ as.numeric(str_replace_all(.x, "[\r\n]", ""))
+    )
+  )
+
+# Save Final Dataset with Engineered Columns to outputs/
+write_csv(logger_data_final, "outputs/logger_data_final.csv")
+
+
+
+```
+
+
+```{r}
+
+# EDA 
+
+# Step 7: Exploratory Data Analysis (EDA)
+# Goal: Begin understanding the telemetry data visually and statistically,
+#       leading toward our modeling goal: predicting altitude.
+
+# 7.1 — Summary table using skimr
+skim_summary <- skimr::skim(logger_data_final)
+skim_summary  # View in R
+write_csv(as_tibble(skim_summary), "outputs/step10_01_skim_summary.csv")
+
+# 7.2 Altitude Over Time
+altitude_plot <- ggplot(logger_data_final, aes(x = elapsed_time_s, y = relative_altitude_m)) +
+  geom_line(color = "steelblue", size = 0.8) +
+  labs(title = "Altitude Throughout the Flight",
+       x = "Elapsed Time (s)",
+       y = "Relative Altitude (m)") +
+  theme_minimal()
+altitude_plot
+ggsave("plots/step10_02_altitude_over_time.png", altitude_plot, width = 8, height = 5)
+
+# 7.3 — Histogram of Vertical Speed
+vspeed_hist <- ggplot(logger_data_final, aes(x = vertical_speed_mps)) +
+  geom_histogram(binwidth = 0.1, fill = "darkgreen", color = "white", alpha = 0.8) +
+  labs(title = "Distribution of Vertical Speed",
+       x = "Vertical Speed (m/s)",
+       y = "Count") +
+  theme_minimal()
+vspeed_hist
+ggsave("plots/step10_03_vertical_speed_hist.png", vspeed_hist, width = 6, height = 5)
+
+# 7.4 — Acceleration Z over Time
+accel_z_plot <- ggplot(logger_data_final, aes(x = elapsed_time_s, y = accel_z_g)) +
+  geom_line(color = "purple", size = 0.7) +
+  labs(title = "Vertical Acceleration Over Time",
+       x = "Elapsed Time (s)",
+       y = "Z-Axis Acceleration (g)") +
+  theme_minimal()
+accel_z_plot
+ggsave("plots/step10_04_accel_z_time.png", accel_z_plot, width = 8, height = 5)
+
+# 7.5 - Altitude Colored by Flight Phase
+altitude_phase_plot <- ggplot(logger_data_final, aes(x = elapsed_time_s, y = relative_altitude_m, color = flight_phase)) +
+  geom_line(size = 0.8) +
+  scale_color_viridis_d() +
+  labs(title = "Flight Altitude Colored by Flight Phase",
+       x = "Elapsed Time (s)",
+       y = "Altitude (m)",
+       color = "Flight Phase") +
+  theme_minimal()
+altitude_phase_plot
+ggsave("plots/step10_05_altitude_colored_phase.png", altitude_phase_plot, width = 8, height = 5)
+
+# 7.6 — Ground Speed vs Altitude
+gs_vs_alt <- ggplot(logger_data_final, aes(x = ground_speed_kmh, y = relative_altitude_m)) +
+  geom_point(alpha = 0.3, color = "darkorange") +
+  labs(title = "Ground Speed vs. Altitude",
+       x = "Ground Speed (km/h)",
+       y = "Altitude (m)") +
+  theme_minimal()
+gs_vs_alt
+ggsave("plots/step10_06_groundspeed_vs_altitude.png", gs_vs_alt, width = 7, height = 5)
+
+# 7.7 — Flight Path (2D Track)
+flight_path_plot <- ggplot(logger_data_final, aes(x = longitude_deg, y = latitude_deg, color = elapsed_time_s)) +
+  geom_path(linewidth = 1) +
+  scale_color_viridis_c() +
+  coord_fixed() +
+  labs(title = "2D Flight Path (Track)",
+       x = "Longitude",
+       y = "Latitude",
+       color = "Elapsed Time (s)") +
+  theme_minimal()
+flight_path_plot
+ggsave("plots/step10_07_flight_path.png", flight_path_plot, width = 8, height = 6)
+
+
+
+
+```
+
+
+```{r}
+# STEP 8 — Summary Tables + Correlation Heatmap
+
+# 8.1 — Numeric Summary Table with skimr
+skim_summary_step11 <- skimr::skim(select(logger_data_final, where(is.numeric)))
+
+# View in R Console
+skim_summary_step11
+
+# Save as CSV for GitHub/output
+write_csv(as_tibble(skim_summary_step11), "outputs/step11_01_skim_numeric_summary.csv")
+cat("Saved skim summary to: outputs/step11_01_skim_numeric_summary.csv\n")
+
+
+# 8.2 — Correlation Matrix Plot
+
+# Compute correlation matrix (rounded)
+corr_matrix <- logger_data_final %>%
+  select(where(is.numeric)) %>%
+  cor(use = "complete.obs") %>%
+  round(2)
+
+# 8.3 Generate heatmap plot
+corr_plot_step11 <- ggplot(melt(as.matrix(corr_matrix)), aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_viridis_c(option = "C", name = "Corr") +
+  labs(title = "Correlation Heatmap of Numeric Features") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# View in RStudio
+corr_plot_step11
+
+# Save plot
+ggsave("plots/step11_02_correlation_heatmap.png", corr_plot_step11, width = 9, height = 7, dpi = 300)
+cat("Saved heatmap to: plots/step11_02_correlation_heatmap.png\n")
+
+
+
+```
+
+
+```{r}
+# 🔹 STEP 9 — Predict Relative Altitude from Telemetry Data
+
+
+# 9.1 Select predictors and target
+model_data <- logger_data_final %>%
+  select(relative_altitude_m, 
+         vertical_speed_mps, 
+         ground_speed_kmh, 
+         barometric_pressure_hpa, 
+         accel_z_g, 
+         total_distance_km)
+
+# 9.2 Train/test split (80/20)
+set.seed(2025)
+data_split <- initial_split(model_data, prop = 0.8)
+train_data <- training(data_split)
+test_data  <- testing(data_split)
+
+# 9.3 Define a linear regression model
+lm_model <- linear_reg() %>%
+  set_engine("lm") %>%
+  set_mode("regression")
+
+# 9.4 Create a modeling workflow
+lm_workflow <- workflow() %>%
+  add_model(lm_model) %>%
+  add_formula(relative_altitude_m ~ .)
+
+# 9.5 Fit model
+lm_fit <- lm_workflow %>%
+  fit(data = train_data)
+
+# 9.6 Evaluate performance
+test_results <- lm_fit %>%
+  predict(new_data = test_data) %>%
+  bind_cols(test_data) %>%
+  metrics(truth = relative_altitude_m, estimate = .pred)
+
+# View in console
+test_results
+
+# Save test results to CSV
+write_csv(test_results, "outputs/step12_model_test_metrics.csv")
+cat("Saved model metrics to: outputs/step12_model_test_metrics.csv\n")
+
+
+# 9.7 Plot predicted vs actual
+test_results_plot <- lm_fit %>%
+  predict(new_data = test_data) %>%
+  bind_cols(test_data)
+
+# 9.8 Generate plot
+predicted_actual_plot <- ggplot(test_results_plot, aes(x = relative_altitude_m, y = .pred)) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "darkgray") +
+  labs(title = "Predicted vs. Actual Altitude",
+       x = "Actual Altitude (m)",
+       y = "Predicted Altitude (m)") +
+  theme_minimal()
+
+# View in RStudio
+predicted_actual_plot
+
+# Save plot
+ggsave("plots/step12_predicted_vs_actual.png", predicted_actual_plot, width = 8, height = 6, dpi = 300)
+cat("Saved plot to: plots/step12_predicted_vs_actual.png\n")
+
+
+# Save final dataset and model
+write_csv(logger_data_final, "outputs/2025-07-01_T28B_final_25cols.csv")
+cat("Saved final data: outputs/2025-07-01_T28B_final_25cols.csv\n")
+
+saveRDS(lm_model, "outputs/altitude_lm_model.rds")
+cat("Saved model object: outputs/altitude_lm_model.rds\n")
+
+
+
+```
+
+
+
+
+```{r}
+# STEP 10 — Classic Linear Model with Full Regression Output
+
+# Build linear model using base R for detailed summary stats
+lm_base <- lm(relative_altitude_m ~ 
+                vertical_speed_mps + 
+                ground_speed_kmh + 
+                barometric_pressure_hpa + 
+                accel_z_g + 
+                total_distance_km,
+              data = logger_data_final)
+
+# Print classic regression summary to console
+summary(lm_base)
+
+# Save the regression output as .txt for GitHub
+capture.output(summary(lm_base), file = "outputs/step12_05_lm_summary.txt")
+cat("✅ Saved classic lm() regression summary: outputs/step12_05_lm_summary.txt\n")
+
+
+write_csv(logger_data_final, "outputs/logger_data_final.csv")
+
+```
+
+
