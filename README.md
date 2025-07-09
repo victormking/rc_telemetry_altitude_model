@@ -29,15 +29,33 @@ This simple and low-cost setup let us collect real telemetry with no live feed �
 ## 📁 FILE STRUCTURE
 .
 ├── data/
-│ └── 2025-07-01-GPS3-46377-0001-Vario(GPS).csv
-├── output/
-│ ├── 2025-07-01_T28B_cleaned.csv
-│ ├── 2025-07-01_T28B_renamed.csv
-│ ├── 2025-07-01_T28B_final_25cols.csv
-│ ├── altitude_lm_model.rds
-│ └── predicted_vs_actual_altitude.png
-├── T28B_July_1st_intro_flight.Rmd
-└── README.md
+│   └── 2025-07-01-GPS3-46377-0001-Vario(GPS).csv         # Raw GPS Logger 3 telemetry file (UTF-16)
+│
+├── outputs/
+│   ├── 2025-07-01_T28B_cleaned.csv                       # Cleaned dataset with selected columns
+│   ├── 2025-07-01_T28B_renamed.csv                       # Renamed dataset with tidy column names
+│   ├── 2025-07-01_T28B_final_25cols.csv                  # Final dataset with engineered features
+│   ├── logger_data_final.csv                             # Duplicate of final dataset (archived format)
+│   ├── step10_01_skim_summary.csv                        # EDA: Summary table (all columns)
+│   ├── step11_01_skim_numeric_summary.csv                # EDA: Summary table (numeric only)
+│   ├── step12_model_test_metrics.csv                     # Modeling: RMSE, MAE, R² results
+│   ├── step12_05_lm_summary.txt                          # Full `lm()` regression output
+│   └── altitude_lm_model.rds                             # Saved model object (RDS format)
+│
+├── plots/
+│   ├── step10_02_altitude_over_time.png                  # Altitude Over Time
+│   ├── step10_03_vertical_speed_hist.png                 # Vertical Speed Histogram
+│   ├── step10_04_accel_z_time.png                        # Acceleration (Z-axis) Over Time
+│   ├── step10_05_altitude_colored_phase.png              # Altitude Colored by Flight Phase
+│   ├── step10_06_groundspeed_vs_altitude.png             # Ground Speed vs Altitude
+│   ├── step10_07_flight_path.png                         # 2D Flight Path (Longitude × Latitude)
+│   ├── step11_02_correlation_heatmap.png                 # Correlation Heatmap of Numeric Columns
+│   ├── step12_predicted_vs_actual.png                    # Predicted vs Actual Altitude
+│   └── lm_coefficients_plot.png                          # Coefficients bar plot (optional/unused)
+│
+├── T28B_July_1st_intro_flight.Rmd                        # Full RMarkdown script (10-step pipeline)
+└── README.md                                             # GitHub project summary
+
 
 
 ---
