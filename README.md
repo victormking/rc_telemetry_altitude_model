@@ -130,6 +130,7 @@ This simple and low-cost setup let us collect real telemetry with no live feed �
 | **Ground Speed vs. Altitude** | Scatterplot showing how speed changes with altitude; useful for visualizing cruising vs. maneuvering. | ![Ground Speed vs Altitude](plots/step10_06_groundspeed_vs_altitude.png) |
 | **2D Flight Path (Latitude × Longitude)** | GPS track of the flight; visually shows launch site, path shape, and field usage. | ![Flight Path](plots/step10_07_flight_path.png) |
 | **Correlation Heatmap of Numeric Columns** | Examines pairwise correlations between all numeric features (telemetry and engineered). | ![Correlation Heatmap](plots/step11_02_correlation_heatmap.png) |
+| **Predicted vs. Actual Altitude** | Final model validation plot showing strong alignment between predicted and actual values (R² ≈ 0.9997). | ![Predicted vs Actual](plots/step12_predicted_vs_actual.png) |
 
 ---
 
