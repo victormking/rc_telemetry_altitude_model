@@ -13,14 +13,30 @@ The final goal: **predict flight altitude** using only basic onboard telemetry.
 
 ## 🛠️ HARDWARE & LOGGING SETUP
 
-| Component       | Description |
-|----------------|-------------|
-| **RC Plane**    | E-flite T-28 Trojan (Park Flyer, 1.1m wingspan) |
-| **Logger**      | SM Modellbau GPS Logger 3 (Vario mode) |
-| **Power**       | Primary: 1S LiPo battery (powers logger via JR-style servo adapter)<br>Flight Battery: 4S 2200mAh 30C Spektrum LiPo |
-| **Transmitter** | Spektrum DX6e (no telemetry integration) |
-| **Logging Mode**| Standalone (no receiver, no soldering required) |
-| **Data Storage**| microSD card (1Hz telemetry logging rate) |
+| Component      | Description                                                                 |
+|----------------|-----------------------------------------------------------------------------|
+| RC Plane       | E-flite T-28 Trojan (Park Flyer, 1.1m wingspan)                             |
+| Logger         | SM Modellbau GPS Logger 3 (Vario mode)                                      |
+| Power          | Primary: 1S LiPo battery (powers logger via JR-style servo adapter)  
+                  Flight Battery: 4S 2200mAh 30C Spektrum LiPo                                 |
+| Transmitter    | Spektrum DX6e (no telemetry integration)                                    |
+| Logging Mode   | Standalone (no receiver, no soldering required)                             |
+| Data Storage   | SanDisk 32GB Ultra microSD (1Hz telemetry logging rate)                     |
+
+This simple and low-cost setup let us collect real telemetry with no live feed — just plug in, fly, retrieve the SD card, and analyze.
+
+---
+
+### 🔧 Supporting Accessories
+
+| Item | Description |
+|------|-------------|
+| Batteries | GNB 4pcs 520mAh 1S LiPo Battery 80C HV 3.8V (JST-PH2.0) — used to power the logger |
+| Connectors | JST PH 2.0mm 3-Pin Male/Female Pairs w/ 10cm 22AWG Silicone Wire |
+| Charger | 6-Channel 1S LiPo USB Charger (Supports JST 1.25, JST-PH 2.0, mCX, mCPX) |
+| Storage | SanDisk 32GB Ultra microSDHC UHS-I Memory Card (A1, 98MB/s, C10) |
+| Mounting | VELCRO Brand 4x2" Heavy Duty Fasteners (10 lb hold, indoor/outdoor) |
+
 
 This simple and low-cost setup let us collect real telemetry with no live feed — just plug in, fly, retrieve the SD card, and analyze.
 
