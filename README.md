@@ -119,13 +119,15 @@ This simple and low-cost setup let us collect real telemetry with no live feed �
 
 ## 📊 EDA VISUALS
 
-- Altitude Over Time
-- Vertical Speed Histogram
-- Acceleration (Z-axis) Over Time
-- Altitude Colored by Flight Phase
-- Ground Speed vs. Altitude
-- 2D Flight Path (Latitude × Longitude)
-- Correlation Heatmap of Numeric Columns
+| Visualization | Description | Preview |
+|---------------|-------------|---------|
+| **Altitude Over Time** | Line plot of relative altitude vs. time; shows takeoff, cruising, and descent clearly. | ![Altitude Over Time](plots/step10_02_altitude_over_time.png) |
+| **Vertical Speed Histogram** | Distribution of vertical speeds (`m/s`) — highlights how often the aircraft was climbing, descending, or level. | ![Vertical Speed Histogram](plots/step10_03_vertical_speed_hist.png) |
+| **Z-Axis Acceleration Over Time** | Shows variations in vertical G-force during flight (e.g., bumps, turns, or abrupt inputs). | ![Accel Z over Time](plots/step10_04_accel_z_time.png) |
+| **Altitude Colored by Flight Phase** | Segments flight into Climb, Sink, and Level using 4-second vertical speed bins. | ![Altitude Colored by Phase](plots/step10_05_altitude_colored_phase.png) |
+| **Ground Speed vs. Altitude** | Scatterplot showing how speed changes with altitude; useful for visualizing cruising vs. maneuvering. | ![Ground Speed vs Altitude](plots/step10_06_groundspeed_vs_altitude.png) |
+| **2D Flight Path (Latitude × Longitude)** | GPS track of the flight; visually shows launch site, path shape, and field usage. | ![Flight Path](plots/step10_07_flight_path.png) |
+| **Correlation Heatmap of Numeric Columns** | Examines pairwise correlations between all numeric features (telemetry and engineered). | ![Correlation Heatmap](plots/step11_02_correlation_heatmap.png) |
 
 ---
 
