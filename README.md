@@ -13,14 +13,14 @@ The final goal: **predict flight altitude** using only basic onboard telemetry.
 
 ## 🛠️ HARDWARE & LOGGING SETUP
 
-| Component          | Description |
-|-------------------|-------------|
-| RC Plane           | E-flite T-28 Trojan (Park Flyer) |
-| Logger             | SM Modellbau GPS Logger 3 (Vario mode) |
-| Power              | 1S LiPo battery (via JR-style servo adapter) |
-| Transmitter        | DX6e (no telemetry) |
-| Logging Mode       | Standalone (no receiver/soldering) |
-| Data Storage       | microSD card (1Hz telemetry logging) |
+| Component       | Description |
+|----------------|-------------|
+| **RC Plane**    | E-flite T-28 Trojan (Park Flyer, 1.1m wingspan) |
+| **Logger**      | SM Modellbau GPS Logger 3 (Vario mode) |
+| **Power**       | Primary: 1S LiPo battery (powers logger via JR-style servo adapter)<br>Flight Battery: 4S 2200mAh 30C Spektrum LiPo |
+| **Transmitter** | Spektrum DX6e (no telemetry integration) |
+| **Logging Mode**| Standalone (no receiver, no soldering required) |
+| **Data Storage**| microSD card (1Hz telemetry logging rate) |
 
 This simple and low-cost setup let us collect real telemetry with no live feed — just plug in, fly, retrieve the SD card, and analyze.
 
