@@ -27,8 +27,6 @@ This simple and low-cost setup let us collect real telemetry with no live feed �
 ---
 
 ## 📁 FILE STRUCTURE
-
-
 .
 ├── data/
 │ └── 2025-07-01-GPS3-46377-0001-Vario(GPS).csv
@@ -43,34 +41,81 @@ This simple and low-cost setup let us collect real telemetry with no live feed �
 
 
 ---
-
 ## 🧰 R TOOLS USED
 
-- `tidyverse`
-- `lubridate`, `janitor`, `skimr`
-- `ggplot2`
-- `yardstick` (for model metrics)
-- `geosphere` (for future mapping)
-- Base R for modeling (`lm()`)
+### Core Data Science Stack
+- `tidyverse` — data wrangling, plotting, reading CSVs
+- `lubridate` — date/time parsing and manipulation
+- `janitor` — cleaning column names and missing data summaries
+- `skimr` — quick dataset summaries and structure checks
 
+### GPS & Mapping
+- `geosphere` — calculate great-circle distance, bearings, GPS-related features
+
+### Visualization
+- `ggplot2` — core plotting
+- `patchwork` — combine multiple ggplots into grid layouts
+- `viridis` — perceptually uniform, colorblind-friendly color scales
+- `scales` — format axes with %, km/h, time, etc.
+
+### Modeling & Tidy Results
+- `tidymodels` — modeling workflows (data split, recipe, model, metrics)
+- `broom` — tidy summaries of model objects
+- `yardstick` — regression metrics (RMSE, MAE, R²)
+
+### Extras
+- `reshape2` — reshaping data for correlation heatmap
+- `DT` — interactive tables for report or Shiny
 ---
 
-## 🔄 PROCESS PIPELINE (Steps 0–12)
+## 🔄 PROCESS PIPELINE (Steps 0–10)
 
 | Step | Description |
 |------|-------------|
-| 0    | Project setup and logging overview |
+| 0    | Project setup and logger overview |
 | 1    | Load raw CSV (UTF-16, `;` delimited) |
 | 2    | Drop irrelevant columns + clean names |
-| 3–4  | Parse and format `flight_date` and `flight_time` |
-| 5–6  | Convert telemetry and sensor columns to numeric |
-| 7–8  | Feature engineering: `elapsed_time_s` and `flight_phase` (4-second bins based on vertical speed) |
-| 9    | Export final tidy dataset (7630 × 26) |
-| 10   | Create EDA visuals (see below) |
-| 11   | Build linear regression model to predict altitude |
-| 12   | Visualize model results and export model files |
+| 3    | Parse and format `flight_date` and `flight_time` |
+| 4    | Convert telemetry and sensor columns to numeric |
+| 5    | Feature engineering: `elapsed_time_s` |
+| 6    | Feature engineering: `flight_phase` (4-second bins based on vertical speed) |
+| 7    | Export final tidy dataset (7630 × 26) |
+| 8    | Create EDA visuals (see below) |
+| 9    | Build linear regression model to predict altitude |
+| 10   | Visualize model results and export model files |
 
 ---
+
+## 📦 FINAL DATASET — 25 COLUMNS
+
+| Column Name               | Description |
+|---------------------------|-------------|
+| row_id                    | Row index created during import (1 row per second) |
+| flight_date               | Date of the flight (parsed from raw time data) |
+| flight_time               | Time of day (parsed from raw timestamp) |
+| elapsed_time_s            | Seconds since flight began (starts at 0) |
+| flight_phase              | Binned flight segments (4-second bins by vertical speed) |
+| latitude_deg              | GPS latitude (decimal degrees) |
+| longitude_deg             | GPS longitude (decimal degrees) |
+| gps_altitude_m            | GPS-reported altitude above sea level (meters) |
+| relative_altitude_m       | Altitude relative to takeoff point (baseline zeroed) |
+| vertical_speed_mps        | Climb/descent rate in meters per second |
+| ground_speed_kmh          | Horizontal (2D) speed across ground in km/h |
+| true_heading_deg          | Aircraft heading in degrees (0–360°) |
+| satellites_locked         | Number of satellites connected to logger |
+| hdop                      | Horizontal Dilution of Precision (GPS accuracy estimate) |
+| accel_x_g                 | Acceleration in X direction (G-forces) |
+| accel_y_g                 | Acceleration in Y direction (G-forces) |
+| accel_z_g                 | Acceleration in Z direction (G-forces; vertical forces) |
+| roll_deg                  | Aircraft roll angle (tilt side-to-side) |
+| pitch_deg                 | Aircraft pitch angle (nose up/down) |
+| temp_c                    | Onboard temperature in degrees Celsius |
+| rx_voltage_v              | Receiver battery voltage (not used; may be placeholder) |
+| gps_lock                  | Boolean or categorical GPS fix status (locked/unlocked) |
+| model_time_s              | Seconds since logger startup (not flight-specific) |
+| logger_id                 | Unique identifier for the logger unit |
+| flight_id                 | Custom flight ID assigned during renaming (e.g., "2025-07-01_T28B")
+
 
 ## 📊 EDA VISUALS
 
