@@ -26,14 +26,6 @@ This simple and low-cost setup let us collect real telemetry with no live feed �
 
 ---
 
-## 🧪 RESEARCH GOALS
-
-- **Q1:** How fast, far, and long was the flight?
-- **Q2:** What was the flight profile (altitude, speed, and motion)?
-- **Q3:** Can we **predict altitude** using basic telemetry?
-
----
-
 ## 📁 FILE STRUCTURE
 
 
@@ -135,11 +127,4 @@ M.S. in Sport Analytics, Syracuse University (2025)
 
 ---
 
-## ✅ Project Status: COMPLETE
 
-Feature engineering ✅  
-EDA ✅  
-Modeling ✅  
-Model export + visualization ✅  
-
-Ready for write-up and GitHub publishing!
